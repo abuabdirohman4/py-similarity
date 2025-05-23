@@ -5,6 +5,10 @@ import imagehash
 import os
 import re  # Add this import for regular expressions
 import shutil
+import cv2
+import numpy as np
+from skimage.metrics import structural_similarity as ssim
+from tqdm import tqdm
 
 class JsonPromptManager:
     def __init__(self, json_path):
@@ -111,42 +115,106 @@ class ImageSelector:
         
         return str(best_image_path), best_score
 
-def main():
-    # Initialize managers
-    prompt_manager = JsonPromptManager("prompts/video10.json")
-    image_selector = ImageSelector()
+def calculate_similarity(img1, img2):
+    # Convert images to grayscale
+    gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
     
-    # Get all prompts for chapter 6
-    chapter_prompts = prompt_manager.get_chapter_prompts("chapter_6")
+    # Calculate SSIM
+    similarity = ssim(gray1, gray2)
+    return similarity
+
+def get_base_filename(filename):
+    # Remove _2, _3, _4 from the end of filename
+    return re.sub(r'_[234]\.(jpg|jpeg|png)$', r'.\1', filename)
+
+def find_best_image_in_set(image_paths):
+    if not image_paths:
+        return None, 0
     
-    # Process each prompt
-    for prompt_data in chapter_prompts:
-        unique_name = prompt_data["unique_name"]
-        # prompt = prompt_data["prompt"]
-        
-        print(f"\nProcessing: {unique_name}")
-        # print(f"Prompt: {prompt}")
-        
-        # Path to images
-        image_dir = Path("images/video10/ch6")
-        temp_dir = image_dir / "temp"
-        temp_dir.mkdir(exist_ok=True)
-        
+    best_image = None
+    best_score = -1
+    
+    # Compare each image with all others
+    for img_path in image_paths:
         try:
-            best_image, score = image_selector.select_best_image(str(image_dir), unique_name)
-            print(f"Best matching image: {best_image}")
-            print(f"Similarity score: {score:.4f}")
+            img = cv2.imread(img_path)
+            if img is None:
+                continue
+                
+            total_similarity = 0
+            comparison_count = 0
             
-            # Move non-selected images to temp folder
-            best_image_path = Path(best_image)
-            for img_path in image_dir.glob(f"{unique_name}*.jpg"):
-                if img_path.name != best_image_path.name:
-                    temp_path = temp_dir / img_path.name
-                    shutil.move(str(img_path), str(temp_path))
-                    print(f"Moved {img_path.name} to temp folder")
+            # Compare with all other images
+            for other_path in image_paths:
+                if other_path != img_path:
+                    other_img = cv2.imread(other_path)
+                    if other_img is None:
+                        continue
+                        
+                    # Resize images to match dimensions
+                    img_resized = cv2.resize(img, (other_img.shape[1], other_img.shape[0]))
+                    
+                    # Calculate similarity
+                    similarity = calculate_similarity(img_resized, other_img)
+                    total_similarity += similarity
+                    comparison_count += 1
             
+            # Calculate average similarity
+            if comparison_count > 0:
+                avg_similarity = total_similarity / comparison_count
+                if avg_similarity > best_score:
+                    best_score = avg_similarity
+                    best_image = img_path
+                    
         except Exception as e:
-            print(f"Error processing {unique_name}: {str(e)}")
+            print(f"Error processing {img_path}: {str(e)}")
+    
+    return best_image, best_score
+
+def main():
+    # Path to the video10 folder
+    video_path = "video10/ch6"
+    
+    # Create output directory if it doesn't exist
+    output_dir = "output"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Dictionary to store image sets
+    image_sets = {}
+    
+    # Walk through all subdirectories to collect image sets
+    for root, dirs, files in os.walk(video_path):
+        for file in files:
+            if file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                base_name = get_base_filename(file)
+                if base_name not in image_sets:
+                    image_sets[base_name] = []
+                image_sets[base_name].append(os.path.join(root, file))
+    
+    # Process each set of images
+    results = []
+    for base_name, image_paths in tqdm(image_sets.items(), desc="Processing image sets"):
+        if len(image_paths) > 1:  # Only process if we have multiple images
+            best_image, score = find_best_image_in_set(image_paths)
+            if best_image:
+                # Get just the filename without extension
+                best_image_name = os.path.splitext(os.path.basename(best_image))[0]
+                results.append({
+                    'base_name': base_name,
+                    'best_image': best_image_name,
+                    'score': score,
+                    'total_images': len(image_paths)
+                })
+    
+    # Save results to file
+    results_file = os.path.join(output_dir, "ch6_best_images.txt")
+    with open(results_file, 'w') as f:
+        for result in sorted(results, key=lambda x: x['base_name']):
+            f.write(f"{result['best_image']}\n")
+    
+    print(f"\nResults saved to {results_file}")
+    print(f"Processed {len(results)} image sets")
 
 if __name__ == "__main__":
     main() 
