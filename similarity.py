@@ -172,18 +172,11 @@ def find_best_image_in_set(image_paths):
     
     return best_image, best_score
 
-def main():
-    # Path to the video10 folder
-    video_path = "video10/ch6"
-    
-    # Create output directory if it doesn't exist
+def process_chapter(chapter):
+    video_path = f"video10/{chapter}"
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Dictionary to store image sets
     image_sets = {}
-    
-    # Walk through all subdirectories to collect image sets
     for root, dirs, files in os.walk(video_path):
         for file in files:
             if file.lower().endswith(('.png', '.jpg', '.jpeg')):
@@ -191,30 +184,34 @@ def main():
                 if base_name not in image_sets:
                     image_sets[base_name] = []
                 image_sets[base_name].append(os.path.join(root, file))
-    
-    # Process each set of images
     results = []
-    for base_name, image_paths in tqdm(image_sets.items(), desc="Processing image sets"):
+    for base_name, image_paths in tqdm(image_sets.items(), desc=f"Processing image sets for {chapter}"):
         if len(image_paths) > 1:  # Only process if we have multiple images
             best_image, score = find_best_image_in_set(image_paths)
             if best_image:
                 # Get just the filename without extension
                 best_image_name = os.path.splitext(os.path.basename(best_image))[0]
+                creation_time = os.path.getmtime(best_image)
                 results.append({
                     'base_name': base_name,
                     'best_image': best_image_name,
-                    'score': score,
-                    'total_images': len(image_paths)
+                    'creation_time': creation_time
                 })
     
-    # Save results to file
-    results_file = os.path.join(output_dir, "ch6_best_images.txt")
-    with open(results_file, 'w') as f:
-        for result in sorted(results, key=lambda x: x['base_name']):
-            f.write(f"{result['best_image']}\n")
+    # Sort results by creation time (oldest first)
+    results.sort(key=lambda x: x['creation_time'])
     
-    print(f"\nResults saved to {results_file}")
-    print(f"Processed {len(results)} image sets")
+    # Save results to file
+    results_file = os.path.join(output_dir, f"{chapter}_best_images.txt")
+    with open(results_file, 'w') as f:
+        for result in results:
+            f.write(f"{result['best_image']}\n")
+    print(f"Results saved to {results_file}")
+    print(f"Processed {len(results)} image sets for {chapter}")
+
+def main():
+    for chapter in ["ch7", "ch8", "ch9"]:
+        process_chapter(chapter)
 
 if __name__ == "__main__":
     main() 
