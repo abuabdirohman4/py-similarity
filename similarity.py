@@ -172,8 +172,8 @@ def find_best_image_in_set(image_paths):
     
     return best_image, best_score
 
-def process_chapter(chapter):
-    video_path = f"video10/{chapter}"
+def process_chapter(video_path):
+    # video_path = f"video10/{video}"
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     image_sets = {}
@@ -185,7 +185,7 @@ def process_chapter(chapter):
                     image_sets[base_name] = []
                 image_sets[base_name].append(os.path.join(root, file))
     results = []
-    for base_name, image_paths in tqdm(image_sets.items(), desc=f"Processing image sets for {chapter}"):
+    for base_name, image_paths in tqdm(image_sets.items(), desc=f"Processing image sets for {video_path}"):
         if len(image_paths) > 1:  # Only process if we have multiple images
             best_image, score = find_best_image_in_set(image_paths)
             if best_image:
@@ -210,8 +210,9 @@ def process_chapter(chapter):
     print(f"Processed {len(results)} image sets for {chapter}")
 
 def main():
-    for chapter in ["ch7", "ch8", "ch9"]:
-        process_chapter(chapter)
+    process_chapter("video10")
+    # for chapter in ["ch7", "ch8", "ch9"]:
+    #     process_chapter(chapter)
 
 if __name__ == "__main__":
     main() 
