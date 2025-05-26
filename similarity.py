@@ -173,7 +173,6 @@ def find_best_image_in_set(image_paths):
     return best_image, best_score
 
 def process_chapter(video_path):
-    # video_path = f"video10/{video}"
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     image_sets = {}
@@ -202,17 +201,15 @@ def process_chapter(video_path):
     results.sort(key=lambda x: x['creation_time'])
     
     # Save results to file
-    results_file = os.path.join(output_dir, f"{chapter}_best_images.txt")
+    results_file = os.path.join(output_dir, f"{video_path}_best_images.txt")
     with open(results_file, 'w') as f:
         for result in results:
             f.write(f"{result['best_image']}\n")
     print(f"Results saved to {results_file}")
-    print(f"Processed {len(results)} image sets for {chapter}")
+    print(f"Processed {len(results)} image sets for {video_path}")
 
 def main():
     process_chapter("video10")
-    # for chapter in ["ch7", "ch8", "ch9"]:
-    #     process_chapter(chapter)
 
 if __name__ == "__main__":
     main() 
