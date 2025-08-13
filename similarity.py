@@ -173,7 +173,6 @@ def find_best_image_in_set(image_paths):
     return best_image, best_score
 
 def process_chapter(video_path):
-    # video_path = f"video10/{video}"
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     image_sets = {}
@@ -210,9 +209,7 @@ def process_chapter(video_path):
     print(f"Processed {len(results)} image sets for {video_path}")
 
 def main():
-    process_chapter("Video15")
-    # for chapter in ["ch7", "ch8", "ch9"]:
-    #     process_chapter(chapter)
+    process_chapter("video10")
 
 if __name__ == "__main__":
     main() 
