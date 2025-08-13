@@ -60,7 +60,7 @@ class ImageSelector:
     def find_matching_images(self, directory, base_filename):
         """Find all images that match the base filename pattern"""
         # Create pattern for matching filenames
-        pattern = re.compile(f"{base_filename}(?:_[2-4])?\.jpg$")
+        pattern = re.compile(rf"{base_filename}(?:_[2-4])?\.jpg$")
         
         # Get all matching files
         matching_files = []
@@ -202,15 +202,15 @@ def process_chapter(video_path):
     results.sort(key=lambda x: x['creation_time'])
     
     # Save results to file
-    results_file = os.path.join(output_dir, f"{chapter}_best_images.txt")
+    results_file = os.path.join(output_dir, f"{video_path}_best_images.txt")
     with open(results_file, 'w') as f:
         for result in results:
             f.write(f"{result['best_image']}\n")
     print(f"Results saved to {results_file}")
-    print(f"Processed {len(results)} image sets for {chapter}")
+    print(f"Processed {len(results)} image sets for {video_path}")
 
 def main():
-    process_chapter("video10")
+    process_chapter("Video15")
     # for chapter in ["ch7", "ch8", "ch9"]:
     #     process_chapter(chapter)
 

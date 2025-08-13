@@ -1,2 +1,6 @@
 Pillow>=9.0.0
-imagehash>=4.3.1 
+imagehash>=4.3.1
+opencv-python
+numpy
+scikit-image
+tqdm 

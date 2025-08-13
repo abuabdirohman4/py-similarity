@@ -18,7 +18,7 @@ The tool leverages advanced image similarity metrics to compare images and outpu
 - **Python 3.7+**
 - **OpenCV (cv2):** For image loading and resizing
 - **scikit-image:** For SSIM calculation
-- **NumPy:** For array manipulation
+- **NumPy:** For array manipulation 
 - **tqdm:** For progress bars
 
 ## Installation
@@ -32,7 +32,8 @@ The tool leverages advanced image similarity metrics to compare images and outpu
    It is recommended to use a virtual environment.
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   On Mac/Linux: source venv/bin/activate  
+   On Windows: source venv/Scripts/activate
    pip install -r requirements.txt
    ```
 
